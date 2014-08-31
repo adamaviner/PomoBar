@@ -54,7 +54,7 @@ void *kContextActivePanel = &kContextActivePanel;
 - (PanelController *)panelController
 {
     if (_panelController == nil) {
-        _panelController = [[PanelController alloc] initWithDelegate:self];
+        _panelController = [[PanelController alloc] initWithDelegate:self menubarController:self.menubarController];
         [_panelController addObserver:self forKeyPath:@"hasActivePanel" options:0 context:kContextActivePanel];
     }
     return _panelController;

@@ -1,10 +1,10 @@
 #import "BackgroundView.h"
 
-#define FILL_OPACITY 0.9f
-#define STROKE_OPACITY 1.0f
+#define FILL_OPACITY 0.8f
+#define STROKE_OPACITY 0.0f
 
-#define LINE_THICKNESS 1.0f
-#define CORNER_RADIUS 6.0f
+#define LINE_THICKNESS 0.0f
+#define CORNER_RADIUS 12.0f
 
 #define SEARCH_INSET 10.0f
 
@@ -49,8 +49,10 @@
     [path lineToPoint:NSMakePoint(_arrowX - ARROW_WIDTH / 2, NSMaxY(contentRect) - ARROW_HEIGHT)];
     [path closePath];
     
-    [[NSColor colorWithDeviceWhite:1 alpha:FILL_OPACITY] setFill];
+
+    [[NSColor colorWithDeviceRed: 0.11 green: 0.11 blue: 0.106 alpha: FILL_OPACITY] setFill];
     [path fill];
+
     
     [NSGraphicsContext saveGraphicsState];
 
@@ -58,9 +60,9 @@
     [clip appendBezierPath:path];
     [clip addClip];
     
-    [path setLineWidth:LINE_THICKNESS * 2];
-    [[NSColor whiteColor] setStroke];
-    [path stroke];
+//    [path setLineWidth:LINE_THICKNESS * 2];
+//    [[NSColor whiteColor] setStroke];
+//    [path stroke];
     
     [NSGraphicsContext restoreGraphicsState];
 }

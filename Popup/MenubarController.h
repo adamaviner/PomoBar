@@ -10,7 +10,10 @@
 }
 
 @property (nonatomic) BOOL hasActiveIcon;
+//@property (nonatomic) void updateIconWithTimeLeft:(int)time;
 @property (nonatomic, strong, readonly) NSStatusItem *statusItem;
 @property (nonatomic, strong, readonly) StatusItemView *statusItemView;
+
+-(void) updateIconWithTimeLeft:(int)time;
 
 @end

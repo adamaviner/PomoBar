@@ -15,8 +15,8 @@
         // Install status item into the menu bar
         NSStatusItem *statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:STATUS_ITEM_VIEW_WIDTH];
         _statusItemView = [[StatusItemView alloc] initWithStatusItem:statusItem];
-        _statusItemView.image = [NSImage imageNamed:@"Status"];
-        _statusItemView.alternateImage = [NSImage imageNamed:@"StatusHighlighted"];
+        _statusItemView.image = [NSImage imageNamed:@"0"];
+//        _statusItemView.alternateImage = [NSImage imageNamed:@"StatusHighlighted"];
         _statusItemView.action = @selector(togglePanel:);
     }
     return self;
@@ -40,6 +40,15 @@
 - (BOOL)hasActiveIcon
 {
     return self.statusItemView.isHighlighted;
+}
+
+- (void) updateIconWithTimeLeft:(int)time{
+    if (time <= 0) time = 0;
+    NSString* imageName = [NSString stringWithFormat:@"%d",time];
+    NSString* alternateImageName = [NSString stringWithFormat:@"b%d",time];
+//    _statusItemView.image =
+    [_statusItemView setImage:[NSImage imageNamed:imageName]];
+    [_statusItemView setAlternateImage:[NSImage imageNamed:alternateImageName]];
 }
 
 - (void)setHasActiveIcon:(BOOL)flag

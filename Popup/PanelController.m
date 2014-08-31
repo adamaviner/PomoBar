@@ -3,13 +3,13 @@
 #import "StatusItemView.h"
 #import "MenubarController.h"
 
-#define OPEN_DURATION .15
+#define OPEN_DURATION .10
 #define CLOSE_DURATION .1
 
 #define SEARCH_INSET 17
 
-#define POPUP_HEIGHT 122
-#define PANEL_WIDTH 280
+#define POPUP_HEIGHT 140
+#define PANEL_WIDTH 120
 #define MENU_ANIMATION_DURATION .1
 
 #pragma mark -
@@ -18,24 +18,35 @@
 
 @synthesize backgroundView = _backgroundView;
 @synthesize delegate = _delegate;
-@synthesize searchField = _searchField;
-@synthesize textField = _textField;
+@synthesize setTimeTextField = _setTimeTextField;
+@synthesize goButton = _goButton;
 
 #pragma mark -
 
-- (id)initWithDelegate:(id<PanelControllerDelegate>)delegate
+NSTimer* timer;
+int timeLeft;
+int totalTime;
+BOOL countingDown;
+BOOL isPaused;
+MenubarController* menubarController;
+
+
+- (id)initWithDelegate:(id<PanelControllerDelegate>)delegate menubarController:(MenubarController*)menubarController_
 {
     self = [super initWithWindowNibName:@"Panel"];
     if (self != nil)
     {
         _delegate = delegate;
+        menubarController = menubarController_;
+        countingDown = NO;
+        isPaused = NO;
     }
     return self;
 }
 
 - (void)dealloc
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSControlTextDidChangeNotification object:self.searchField];
+//    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSControlTextDidChangeNotification object:self.searchField];
 }
 
 #pragma mark -
@@ -51,11 +62,80 @@
     [panel setOpaque:NO];
     [panel setBackgroundColor:[NSColor clearColor]];
     
+    
+    [self.setTimeTextField setTarget:self];
+    [self.setTimeTextField setAction:@selector(startTimer:)];
+
+//    wc = [[NSWindowController alloc] initWithWindowNibName:@"BreakPanel"];
+    breakPanelController = [[BreakPanelController alloc] init];
+
+    
     // Follow search string
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(runSearch) name:NSControlTextDidChangeNotification object:self.searchField];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(runSearch) name:NSControlTextDidChangeNotification object:self.searchField];
 }
 
 #pragma mark - Public accessors
+
+- (IBAction)startTimer:(id)sender {
+    if (countingDown){
+        [self pauseTimer];
+        return;
+    }
+    
+    int time = [self.setTimeTextField intValue];
+    if (time == 0) time = 25;
+    
+    if (!isPaused){
+        totalTime = time * 60;
+        timeLeft = time * 60;
+    }
+    
+    [self.totalTimeLabel setIntValue:totalTime / 60];
+    [self.totalTimeLabel setHidden:NO];
+    [self.minsLabel setHidden:NO];
+    
+    timer = [NSTimer scheduledTimerWithTimeInterval:1//0.016666667
+                                     target:self
+                                   selector:@selector(updateTime)
+                                   userInfo:nil
+                                    repeats:YES];
+    
+    [self.goButton setImage:[NSImage imageNamed:@"Pause"]];
+    countingDown = YES;
+    
+    
+}
+
+- (void)updateTime{
+    timeLeft -= 1;
+    [self.setTimeTextField setStringValue:[NSString stringWithFormat:@"%d",timeLeft / 60]];
+    int stepInCountDown = timeLeft * 60 / totalTime;
+    [menubarController updateIconWithTimeLeft:stepInCountDown];
+    if (timeLeft <= 0) [self stopTimer];
+}
+
+- (void)pauseTimer{
+    [timer invalidate];
+    timer = nil;
+    [self.goButton setImage:[NSImage imageNamed:@"Play"]];
+    countingDown = NO;
+    isPaused = YES;
+}
+
+- (void)stopTimer{
+    [self pauseTimer];
+    [self.setTimeTextField setIntValue:totalTime/60];
+    [self.totalTimeLabel setHidden:YES];
+    [self.minsLabel setHidden:YES];
+    isPaused = NO;
+//    [self showBreakPanel];
+    [breakPanelController showBreakPanel]; //TODO use the timer here to countdown the menubar icon as well, and block redoing timer, and remotly control breakPanel countdown.
+    //TODO as a user I sometimes need a couple more minutes before the break, maybe limit to twice.
+}
+
+//-(void) hideBreakPanel {
+//    [breakPanelController.window orderOut:self];
+//}
 
 - (BOOL)hasActivePanel
 {
@@ -104,37 +184,6 @@
     CGFloat panelX = statusX - NSMinX(panelRect);
     
     self.backgroundView.arrowX = panelX;
-    
-    NSRect searchRect = [self.searchField frame];
-    searchRect.size.width = NSWidth([self.backgroundView bounds]) - SEARCH_INSET * 2;
-    searchRect.origin.x = SEARCH_INSET;
-    searchRect.origin.y = NSHeight([self.backgroundView bounds]) - ARROW_HEIGHT - SEARCH_INSET - NSHeight(searchRect);
-    
-    if (NSIsEmptyRect(searchRect))
-    {
-        [self.searchField setHidden:YES];
-    }
-    else
-    {
-        [self.searchField setFrame:searchRect];
-        [self.searchField setHidden:NO];
-    }
-    
-    NSRect textRect = [self.textField frame];
-    textRect.size.width = NSWidth([self.backgroundView bounds]) - SEARCH_INSET * 2;
-    textRect.origin.x = SEARCH_INSET;
-    textRect.size.height = NSHeight([self.backgroundView bounds]) - ARROW_HEIGHT - SEARCH_INSET * 3 - NSHeight(searchRect);
-    textRect.origin.y = SEARCH_INSET;
-    
-    if (NSIsEmptyRect(textRect))
-    {
-        [self.textField setHidden:YES];
-    }
-    else
-    {
-        [self.textField setFrame:textRect];
-        [self.textField setHidden:NO];
-    }
 }
 
 #pragma mark - Keyboard
@@ -142,18 +191,6 @@
 - (void)cancelOperation:(id)sender
 {
     self.hasActivePanel = NO;
-}
-
-- (void)runSearch
-{
-    NSString *searchFormat = @"";
-    NSString *searchString = [self.searchField stringValue];
-    if ([searchString length] > 0)
-    {
-        searchFormat = NSLocalizedString(@"Search for ‘%@’…", @"Format for search request");
-    }
-    NSString *searchRequest = [NSString stringWithFormat:searchFormat, searchString];
-    [self.textField setStringValue:searchRequest];
 }
 
 #pragma mark - Public methods
@@ -228,7 +265,9 @@
     [[panel animator] setAlphaValue:1];
     [NSAnimationContext endGrouping];
     
-    [panel performSelector:@selector(makeFirstResponder:) withObject:self.searchField afterDelay:openDuration];
+    [panel performSelector:@selector(makeFirstResponder:) withObject:self.goButton];
+    
+    
 }
 
 - (void)closePanel

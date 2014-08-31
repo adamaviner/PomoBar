@@ -1,5 +1,7 @@
 #import "BackgroundView.h"
 #import "StatusItemView.h"
+#import "MenubarController.h"
+#import "BreakPanelController.h"
 
 @class PanelController;
 
@@ -18,18 +20,23 @@
     BOOL _hasActivePanel;
     __unsafe_unretained BackgroundView *_backgroundView;
     __unsafe_unretained id<PanelControllerDelegate> _delegate;
-    __unsafe_unretained NSSearchField *_searchField;
-    __unsafe_unretained NSTextField *_textField;
+    StatusItemView *_statusItemView;
+    BreakPanelController* breakPanelController;
 }
 
 @property (nonatomic, unsafe_unretained) IBOutlet BackgroundView *backgroundView;
-@property (nonatomic, unsafe_unretained) IBOutlet NSSearchField *searchField;
-@property (nonatomic, unsafe_unretained) IBOutlet NSTextField *textField;
+@property (unsafe_unretained) IBOutlet NSTextField *setTimeTextField;
+@property (unsafe_unretained) IBOutlet NSButton *goButton;
+@property (retain) StatusItemView *statusItemView;
+@property (unsafe_unretained) IBOutlet NSTextField *totalTimeLabel;
+@property (unsafe_unretained) IBOutlet NSTextField *minsLabel;
+
+- (IBAction)startTimer:(id)sender;
 
 @property (nonatomic) BOOL hasActivePanel;
 @property (nonatomic, unsafe_unretained, readonly) id<PanelControllerDelegate> delegate;
 
-- (id)initWithDelegate:(id<PanelControllerDelegate>)delegate;
+- (id)initWithDelegate:(id<PanelControllerDelegate>)delegate menubarController:(MenubarController*)menubarController;
 
 - (void)openPanel;
 - (void)closePanel;
