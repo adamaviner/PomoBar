@@ -1,7 +1,10 @@
-# Popup
+# PomoBar
 
-Popup project is a demo with custom popover window appearing from the icon in the Mac OS X status bar.
+PomoBar is a simple pomodoro timer that sits in the OSX menu bar
 
 # License
 
-Popup is licensed under the BSD license.
+PomoBar is licensed under the BSD license.
+
+# Credit
+This is based off [Popup](https://github.com/shpakovski/Popup "popup"), which provides a basic implementation of a menu bar app
